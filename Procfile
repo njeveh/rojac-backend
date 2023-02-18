@@ -1,0 +1,1 @@
+web: gunicorn rojac_backend.wsgi --log-file -
