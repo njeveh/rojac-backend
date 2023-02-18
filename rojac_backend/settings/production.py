@@ -66,7 +66,7 @@ DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset_password/confirm/{uid}/{token}',
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset_username/confirm/{uid}/{token}',
     "SEND_ACTIVATION_EMAIL": True,
-    "ACTIVATION_URL": "activate-account/{uid}/{token}",
+    "ACTIVATION_URL": "accounts/activate-account/{uid}/{token}",
     # 'SERIALIZERS': {
     #     'token_create': 'rojac.serializers.CustomTokenCreateSerializer',
     # }
