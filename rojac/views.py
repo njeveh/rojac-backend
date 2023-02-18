@@ -236,7 +236,7 @@ class UserActivationView(APIView):
 
         if request.is_secure():
             protocol = 'https://'
-            web_url = protocol + 'rojac.herokuapp.com'
+            web_url = protocol + 'njeveh.pythonanywhere.com'
         else:
             protocol = 'http://'
             web_url = protocol + 'localhost:8000'
