@@ -68,7 +68,8 @@ class CreateClientApiView(CreateAPIView):
         return Response({
             'email': client.profile.email,
             'account_id': client.pk,
-            "detail": ("your client account has been successfully created."
+            "detail": ("your client account has been successfully created.Please check your"
+                       " email inbox for activation link."
                         " Thank you for choosing rojac"),
             "status_code": 201})
 
