@@ -6,7 +6,6 @@ from django.db.models.fields.related import ForeignKey
 from django.contrib.auth.models import AbstractUser
 
 # make email in User a mandatory field
-User._meta.get_field('email')._unique = True
 User._meta.get_field('email').blank = False
 User._meta.get_field('email').null = False
 
