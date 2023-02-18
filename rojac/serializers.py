@@ -69,30 +69,28 @@ class UserSerializer(UserCreateSerializer):
         request = self.context.get("request")
 
         try:
-            # roll back user create if account activation email isn't sent successfully
-            with transaction.atomic():
-                validated_data.pop("confirm_password")
-                user = self.perform_create_user(validated_data)
-                user_registered.send(sender=self.__class__,
-                                     user=user, request=request)
+            validated_data.pop("confirm_password")
+            user = self.perform_create_user(validated_data)
+            user_registered.send(sender=self.__class__,
+                                 user=user, request=request)
 
-                context = {
-                    "user": user,
-                    "domain": "glamourhaven.vercel.app",
-                    "protocal": "https"
-                }
-                to = [get_user_email(user)]
-                if settings.SEND_ACTIVATION_EMAIL:
-                    try:
-                        settings.EMAIL.activation(
-                            request, context).send(to)
-                    except Exception as e:
-                        raise CustomException(
-                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            code=500,
-                            detail={"error": [("Sorry, something went wrong. we are unable to complete your request."
-                                    " Please contact support for more information")]},
-                        )
+            context = {
+                "user": user,
+                "domain": "njeveh.pythonanywhere.com",
+                "protocal": "https"
+            }
+            to = [get_user_email(user)]
+            if settings.SEND_ACTIVATION_EMAIL:
+                try:
+                    settings.EMAIL.activation(
+                        request, context).send(to)
+                except Exception as e:
+                    raise CustomException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        code=500,
+                        detail={"error": [("Sorry, something went wrong. we are unable to complete your request."
+                                " Please contact support for more information")]},
+                    )
         except Exception as e:
             raise e
         return user
@@ -115,10 +113,30 @@ class UserSecureSerializer(serializers.ModelSerializer):
 
 class ClientSerializer(serializers.ModelSerializer):
     """A serializer class for the client model"""
+    profile = UserSerializer()
 
     class Meta:
         model = Client
         fields = '__all__'
+
+    def create(self, validated_data):
+        """creates new instances of User if it doesn't exist
+        and proceeds to create an instance of a Buyer"""
+
+        with transaction.atomic():
+
+            user_data = validated_data.pop("profile")
+            nested_serializer = self.fields['profile']
+
+            try:
+                user = User.objects.get(username=user_data["username"])
+            except:
+                # User.objects.create_user(**user_data)
+                user = nested_serializer.create(user_data)
+            validated_data.update({"profile": user})
+
+            client = Client.objects.create(**validated_data)
+            return client
 
 
 class ClientSecureSerializer(serializers.ModelSerializer):
