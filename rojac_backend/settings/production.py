@@ -32,10 +32,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
-    'rojac.herokuapp.com'
+    'njeveh.pythonanywhere.com'
 ]
 
 
@@ -127,7 +127,7 @@ DATABASES = {
         'USER': env("DATABASE_USER"),
         'PASSWORD': env("DATABASE_PASSWORD"),
         'HOST': env("DATABASE_HOST"),
-        'PORT': env("DATABASE_PORT"),
+        # 'PORT': env("DATABASE_PORT"),
     }
 }
 
@@ -183,11 +183,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIR = Path(BASE_DIR / 'static/')
-STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
+STATICFILES_DIR = Path(BASE_DIR / 'staticfiles/')
+STATIC_ROOT = Path(BASE_DIR / 'static/')
 
+MEDIA_ROOT = Path(BASE_DIR / 'media/')
 MEDIA_URL = '/media/'
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# STATIC_URL = '/static/'
+# STATICFILES_DIR = Path(BASE_DIR / 'static/')
+# STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
+
+# MEDIA_URL = '/media/'
+# DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
