@@ -7,6 +7,7 @@ from .models import *
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from django.contrib.auth import authenticate
 from djoser.conf import settings
+from rojac_backend import settings as conf
 from djoser.signals import user_registered
 from djoser.compat import get_user_email
 from djoser.serializers import UserCreateSerializer
@@ -76,7 +77,7 @@ class UserSerializer(UserCreateSerializer):
 
             context = {
                 "user": user,
-                "domain": "njeveh.pythonanywhere.com",
+                "domain": conf.SITE_DOMAIN,
                 "protocal": "https"
             }
             to = [get_user_email(user)]
