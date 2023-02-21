@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "cloudinary",
     "cloudinary_storage",
     "corsheaders",
+    'django_filters',
 ]
 
 LOGIN_URL = '/admin/login/'
@@ -64,7 +65,7 @@ DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset_password/confirm/{uid}/{token}',
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset_username/confirm/{uid}/{token}',
     "SEND_ACTIVATION_EMAIL": True,
-    "ACTIVATION_URL": "activate-account/{uid}/{token}",
+    "ACTIVATION_URL": "#/activate-account/{uid}/{token}",
     # 'SERIALIZERS': {
     #     'token_create': 'rojac.serializers.CustomTokenCreateSerializer',
     # }
@@ -148,7 +149,16 @@ AUTH_PASSWORD_VALIDATORS = [
 #     'EXCEPTION_HANDLER': 'glamourhaven.utils.custom_exception_handler.custom_exception_handler'
 
 # }
-
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    #     'jengabay.token_authentication.ExpiringTokenAuthentication',
+    #     'rest_framework.authentication.SessionAuthentication',
+    #     'rest_framework.authentication.BasicAuthentication',
+    # ],
+    # 'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny', ]
+    # 'EXCEPTION_HANDLER': 'glamourhaven.utils.custom_exception_handler.custom_exception_handler'
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
