@@ -25,6 +25,7 @@ from .utils.accounts import has_pending_signup, get_session_data
 from random import seed
 from random import randint
 from rest_framework.renderers import JSONRenderer
+from rojac_backend import settings as conf
 
 
 class Index():
@@ -417,17 +418,17 @@ def user_account_activation(request, uid, token):
     """gets the activation request, captures the activation id and token from the request link
     and posts them to the djoser account activation url"""
 
-    if request.is_secure():
-        protocol = 'https://'
-        web_url = protocol + 'njeveh.pythonanywhere.com'
+    if conf.PRODUCTION:
+        protocal = 'https://'
     else:
-        protocol = 'http://'
-        web_url = protocol + 'localhost:8000'
+        protocal = 'http://'
+    web_url = protocal + conf.SITE_DOMAIN
     post_url = web_url + "/accounts/users/activation/"
     post_data = {'uid': uid, 'token': token}
     result = requests.post(post_url, json=post_data)
     message = result.json()
-    return render(request=request, template_name="account_activation_complete.html", context={"message": message})
+    return Response(message)
+    # return render(request=request, template_name="account_activation_complete.html", context={"message": message})
 
 
 # def user_account_activated(request):

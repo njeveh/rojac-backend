@@ -56,7 +56,7 @@ class Product(models.Model):
     product_category = models.ForeignKey(
         ProductCategory, on_delete=models.CASCADE)
     product_description = models.TextField(null=False)
-    price = models.DecimalField(decimal_places=2, max_digits=100,
+    price = models.DecimalField(decimal_places=2, max_digits=50,
                                 validators=[MinValueValidator(0)], null=True, blank=True)
     product_main_image = models.ImageField(
         upload_to='product/inages', null=False)
@@ -115,7 +115,7 @@ class ProductVariation(models.Model):
     category = models.CharField(
         max_length=120, choices=VARIATION_CATEGORIES, default=VARIATION_CATEGORIES[0])
     image = models.ImageField(upload_to='product/images/')
-    price = models.DecimalField(decimal_places=2, max_digits=100,
+    price = models.DecimalField(decimal_places=2, max_digits=50,
                                 validators=[MinValueValidator(0)], null=True, blank=True)
     number_in_stock = models.IntegerField(null=True)
 
