@@ -33,7 +33,7 @@ SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+PRODUCTION = True
 ALLOWED_HOSTS = [
     'njeveh.pythonanywhere.com'
 ]
@@ -75,6 +75,7 @@ DJOSER = {
 
 #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 SITE_NAME = "Rojac"
+SITE_DOMAIN = "njeveh.pythonanywhere.com"
 
 # cloudinary storage settings
 CLOUDINARY_STORAGE = {

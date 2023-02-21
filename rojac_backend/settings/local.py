@@ -30,6 +30,7 @@ SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+PRODUCTION = False
 
 ALLOWED_HOSTS = [
     # 'http://localhost:8000',
@@ -73,6 +74,7 @@ DJOSER = {
 
 #EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 SITE_NAME = "Rojac"
+SITE_DOMAIN = "4a0d-41-60-239-206.ngrok.io"
 
 
 MIDDLEWARE = [
