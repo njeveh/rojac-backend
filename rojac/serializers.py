@@ -166,18 +166,72 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-class CommoditySerializer(serializers.ModelSerializer):
-    """a serializer class for the commodity model"""
+class ProductCategorySerializer(serializers.ModelSerializer):
+    """a serializer class for the product category model"""
 
     class Meta:
-        model = Commodity
+        model = ProductCategory
         fields = "__all__"
 
     def update(self, instance, validated_data):
-        """update method to enable updates on the Commodity"""
+        """update method to enable updates on the Product Category"""
 
-        instance.commodity_name = validated_data.get(
-            "commodity_name", instance.commodity_name)
+        instance.category_title = validated_data.get(
+            "category_title", instance.category_title)
+        instance.image = validated_data.get(
+            "image", instance.image)
+        instance.save()
+
+        return instance
+
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    """a serializer class for the product image model"""
+
+    class Meta:
+        model = ProductImage
+        fields = "__all__"
+
+
+class ProductVariationSerializer(serializers.ModelSerializer):
+    """a serializer class for the product variation model"""
+
+    class Meta:
+        model = ProductVariation
+        fields = "__all__"
+
+    def update(self, instance, validated_data):
+        """update method to enable updates on the Product Variation instances"""
+
+        instance.value = validated_data.get(
+            "value", instance.value)
+        instance.category = validated_data.get(
+            "category", instance.category)
+        instance.image = validated_data.get(
+            "image", instance.image)
+        instance.price = validated_data.get(
+            "price", instance.price)
+        instance.number_in_stock = validated_data.get(
+            "number_in_stock", instance.number_in_stock)
+        instance.is_featured = validated_data.get(
+            "is_featured", instance.is_featured)
+        instance.save()
+
+        return instance
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    """a serializer class for the product model"""
+
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+    def update(self, instance, validated_data):
+        """update method to enable updates on the Product"""
+
+        instance.product_name = validated_data.get(
+            "product_name", instance.product_name)
         instance.category = validated_data.get(
             "category", instance.category)
         instance.description = validated_data.get(
@@ -188,17 +242,42 @@ class CommoditySerializer(serializers.ModelSerializer):
             "pricing_unit", instance.pricing_unit)
         instance.number_in_stock = validated_data.get(
             "number_in_stock", instance.number_in_stock)
-        instance.commodity_main_image = validated_data.get(
-            "commodity_main_image", instance.commodity_main_image)
-        instance.commodity_extra_image1 = validated_data.get(
-            "commodity_extra_image1", instance.commodity_extra_image1)
-        instance.commodity_extra_image2 = validated_data.get(
-            "commodity_extra_image2", instance.commodity_extra_image2)
+        instance.product_main_image = validated_data.get(
+            "product_main_image", instance.product_main_image)
+        instance.product_extra_image1 = validated_data.get(
+            "product_extra_image1", instance.product_extra_image1)
+        instance.product_extra_image2 = validated_data.get(
+            "product_extra_image2", instance.product_extra_image2)
         instance.save()
 
         return instance
 
 
+class HomePageDataSerializer(serializers.Serializer):
+    """a serializer class for home page data"""
+    product_categories = ProductCategorySerializer(many=True)
+    products = ProductSerializer(many=True)
+
+
+class ProductDataSerializer(serializers.Serializer):
+    """a serializer class for the product detail data"""
+    product = ProductSerializer(many=False)
+    related_products = ProductSerializer(many=True)
+    product_images = ProductImageSerializer(many=True)
+    product_variations = ProductVariationSerializer(many=True)
+    product_variation_images = ProductImageSerializer(many=True)
+
+    # class Meta:
+    #     fields = ['product', 'related_products', 'product_images',
+    #               'product_variations', 'product_variation_images']
+
+
+class ProductVariationImageSerializer(serializers.ModelSerializer):
+    """a serializer class for the product variation image model"""
+
+    class Meta:
+        model = ProductImage
+        fields = "__all__"
 # class LNMOrderSerializer(serializers.ModelSerializer):
 #     payment_transaction = serializers.PrimaryKeyRelatedField(read_only=True)
 #     placer = serializers.PrimaryKeyRelatedField(read_only=True)

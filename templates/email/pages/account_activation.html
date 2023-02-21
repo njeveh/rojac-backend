@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  {% load crispy_forms_tags %}  
+  
+  <!--Password Reset Confirm-->
+    <div class="container p-5">
+	    <h2 class="font-weight-bold mt-3">Account Activation</h2>
+		<hr>
+        <p>Please click the button below to activate your account.</p>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form|crispy }}                    
+            <button class="btn btn-primary" id="account-activation-btn" type="submit">Activate Account</button>
+        </form>
+    </div>
+    <script>
+        $('#account-activation-btn').on('click', ()=> {
+            
+        })
+    </script>
+
+{% endblock %}
