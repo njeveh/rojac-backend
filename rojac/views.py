@@ -3,12 +3,12 @@ from urllib import request
 from django.http import HttpResponse, HttpResponseServerError, JsonResponse
 from django.shortcuts import render
 import requests
-
+from django.core import serializers as sez
+from django.core.serializers import serialize
 import pytz
 from .serializers import *
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveUpdateAPIView
 from .models import *
 from rest_framework import filters
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -24,6 +24,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .utils.accounts import has_pending_signup, get_session_data
 from random import seed
 from random import randint
+from rest_framework.renderers import JSONRenderer
 
 
 class Index():
@@ -67,8 +68,9 @@ class CreateClientApiView(CreateAPIView):
         # override the default return value upon success
         return Response({
             'email': client.profile.email,
+            'user_id': client.profile.id,
             'account_id': client.pk,
-            "detail": ("your client account has been successfully created.Please check your"
+            "detail": ("your account has been successfully created.Please check your"
                        " email inbox for activation link."
                         " Thank you for choosing rojac"),
             "status_code": 201})
@@ -101,43 +103,227 @@ class UpdateClientApiView(RetrieveUpdateDestroyAPIView):
     queryset = Client.objects.all()
 
 
-class AddCommodityApiView(CreateAPIView):
+class AddProductApiView(CreateAPIView):
     """api for adding new sale items"""
     # user must be authenticated and with the staff status
     # permission_classes = [permissions.IsAuthenticated, IsManager]
 
-    serializer_class = CommoditySerializer
-    queryset = Commodity.objects.all()
+    serializer_class = ProductSerializer
+    queryset = Product.objects.all()
 
 
-class ListCommoditiesApiView(ListAPIView):
-    """api for listing all sale items"""
+class HomePagedataApiView(ListAPIView):
+    """api for getting home data"""
 
-    serializer_class = CommoditySerializer
-    queryset = Commodity.objects.all()
-    # filter_backends = [filters.SearchFilter, DjangoFilterBackend, ]
-    # search_fields = [
-    #     'commodity_name', 'description', 'price', 'category', ]
-
-    # filterset_fields = ['category', ]
-
-
-class SpecificCommodityApiView(ListAPIView):
-    """gets a specific sale item"""
-
-    serializer_class = CommoditySerializer
+    serializer_class = HomePageDataSerializer
 
     def get_queryset(self):
-        return Commodity.objects.all().filter(id=self.kwargs['pk'])
+        product_categories = ProductCategory.objects.all()
+        products = Product.objects.filter(is_featured=True).order_by('-id')
+        data = [{
+            'product_categories': product_categories,
+            'products': products,
+        }]
+        return data
 
 
-class UpdateCommodityApiView(RetrieveUpdateDestroyAPIView):
+class ListProductsApiView(ListAPIView):
+    """api for listing all sale items"""
+
+    serializer_class = ProductSerializer
+    queryset = Product.objects.all().filter(is_featured=True).order_by('-id')
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend, ]
+    search_fields = [
+        'product_title', 'product_description', 'price', 'product_category__category_title', ]
+
+    filterset_fields = ['product_category', ]
+
+
+class SpecificProductApiView(ListAPIView):
+    """gets a specific sale item"""
+
+    serializer_class = ProductDataSerializer
+
+    def get_queryset(self):
+        product = Product.objects.get(id=self.kwargs['pk'])
+        related_products = Product.objects.all().filter(
+            product_category=product.product_category).exclude(id=self.kwargs['pk']).filter(is_featured=True)
+        product_images = ProductImage.objects.all().filter(
+            product=product)
+        product_variations = ProductVariation.objects.all()
+        product_variation_images = ProductVariationImage.objects.all().filter(
+            product_variation__product=product).filter(is_featured=True)
+        product_data = [
+            {'product': product,
+             'related_products': related_products,
+             'product_images': product_images,
+             'product_variations': product_variations,
+             'product_variation_images': product_variation_images},
+        ]
+        # results = ProductDataSerializer(product_data, many=True).data
+        # results = JSONRenderer().render(results)
+        # return Response(results)
+        return product_data
+
+
+class UpdateProductApiView(RetrieveUpdateDestroyAPIView):
     """api that allows shop owner to update their sale commodities"""
     # user must be authenticated and with the staff status
     # permission_classes = [permissions.IsAuthenticated, IsManager]
 
-    serializer_class = CommoditySerializer
-    queryset = Commodity.objects.all()
+    serializer_class = ProductSerializer
+    queryset = Product.objects.all()
+
+
+class AddProductCategoryApiView(CreateAPIView):
+    """api for adding new product categories"""
+    # user must be authenticated and with the staff status
+    # permission_classes = [permissions.IsAuthenticated, IsManager]
+
+    serializer_class = ProductCategorySerializer
+    queryset = ProductCategory.objects.all()
+
+
+class ListProductCategoriesApiView(ListAPIView):
+    """api for listing all product categories"""
+
+    serializer_class = ProductCategorySerializer
+    queryset = ProductCategory.objects.all()
+    # filter_backends = [filters.SearchFilter, DjangoFilterBackend, ]
+    # search_fields = [
+    #     'product_name', 'description', 'price', 'category', ]
+
+    # filterset_fields = ['category', ]
+
+
+class SpecificProductCategoryApiView(ListAPIView):
+    """gets a specific product category"""
+
+    serializer_class = ProductCategorySerializer
+
+    def get_queryset(self):
+        return ProductCategory.objects.all().filter(pk=self.kwargs['pk'])
+
+
+class UpdateProductCategoryApiView(RetrieveUpdateDestroyAPIView):
+    """api that allows shop owner to update their product categories"""
+    # user must be authenticated and with the staff status
+    # permission_classes = [permissions.IsAuthenticated, IsManager]
+
+    serializer_class = ProductCategorySerializer
+    queryset = ProductCategory.objects.all()
+
+
+class AddProductVariationApiView(CreateAPIView):
+    """api for adding a new product variation"""
+    # user must be authenticated and with the staff status
+    # permission_classes = [permissions.IsAuthenticated, IsManager]
+
+    serializer_class = ProductVariationSerializer
+    queryset = ProductVariation.objects.all()
+
+
+class ListProductVariationsApiView(ListAPIView):
+    """api for listing all product variations"""
+
+    serializer_class = ProductVariationSerializer
+    queryset = ProductVariation.objects.all()
+    # filter_backends = [filters.SearchFilter, DjangoFilterBackend, ]
+    # search_fields = [
+    #     'product_name', 'description', 'price', 'category', ]
+
+    # filterset_fields = ['category', ]
+
+
+class SpecificProductVariationApiView(ListAPIView):
+    """gets a specific product variation"""
+
+    serializer_class = ProductVariationSerializer
+
+    def get_queryset(self):
+        return ProductVariation.objects.all().filter(pk=self.kwargs['pk'])
+
+
+class UpdateProductVariationApiView(RetrieveUpdateDestroyAPIView):
+    """api that allows shop owner to update their product variations"""
+    # user must be authenticated and with the staff status
+    # permission_classes = [permissions.IsAuthenticated, IsManager]
+
+    serializer_class = ProductVariationSerializer
+    queryset = ProductVariation.objects.all()
+
+
+class AddProductImageApiView(CreateAPIView):
+    """api for adding new product images"""
+    # user must be authenticated and with the staff status
+    # permission_classes = [permissions.IsAuthenticated, IsManager]
+
+    serializer_class = ProductImageSerializer
+    queryset = ProductImage.objects.all()
+
+
+class ListProductImagesApiView(ListAPIView):
+    """api for listing all product images"""
+
+    serializer_class = ProductImageSerializer
+    queryset = ProductImage.objects.all()
+    # filter_backends = [filters.SearchFilter, DjangoFilterBackend, ]
+    # search_fields = [
+    #     'product_name', 'description', 'price', 'category', ]
+
+    # filterset_fields = ['category', ]
+
+
+class SpecificProductImageApiView(ListAPIView):
+    """gets a specific product image"""
+
+    serializer_class = ProductImageSerializer
+
+    def get_queryset(self):
+        return ProductImage.objects.all().filter(pk=self.kwargs['pk'])
+
+
+class UpdateProductImageApiView(RetrieveUpdateDestroyAPIView):
+    """api that allows shop owner to update their product images"""
+    # user must be authenticated and with the staff status
+    # permission_classes = [permissions.IsAuthenticated, IsManager]
+
+    serializer_class = ProductImageSerializer
+    queryset = ProductImage.objects.all()
+
+
+class AddProductVariationImageApiView(CreateAPIView):
+    """api for adding new product images"""
+    # user must be authenticated and with the staff status
+    # permission_classes = [permissions.IsAuthenticated, IsManager]
+
+    serializer_class = ProductVariationImageSerializer
+    queryset = ProductVariationImage.objects.all()
+
+
+class ListProductVariationImagesApiView(ListAPIView):
+    """api for listing all product variation images"""
+
+    serializer_class = ProductVariationImageSerializer
+    queryset = ProductVariationImage.objects.all()
+
+
+class SpecificProductVariationImageApiView(ListAPIView):
+    """gets a specific product variation image"""
+
+    serializer_class = ProductVariationImageSerializer
+
+    def get_queryset(self):
+        return ProductVariationImage.objects.all().filter(pk=self.kwargs['pk'])
+
+
+class UpdateProductVariationImageApiView(RetrieveUpdateDestroyAPIView):
+    """api that allows shop owner to update their product variation images"""
+    # user must be authenticated and with the staff status
+    # permission_classes = [permissions.IsAuthenticated, IsManager]
+
+    serializer_class = ProductImageSerializer
+    queryset = ProductVariationImage.objects.all()
 
 
 # class LNMOrderAPIView(CreateAPIView):
@@ -227,24 +413,37 @@ class ClientEmailView(CreateAPIView):
                     'status_code': 400}
 
 
-class UserActivationView(APIView):
-    """gets user account activation request"""
+def user_account_activation(request, uid, token):
+    """gets the activation request, captures the activation id and token from the request link
+    and posts them to the djoser account activation url"""
 
-    def get(self, request, uid, token):
-        """gets the activation request, captures the activation id and token from the request link
-        and posts them to the djoser account activation url"""
+    if request.is_secure():
+        protocol = 'https://'
+        web_url = protocol + 'njeveh.pythonanywhere.com'
+    else:
+        protocol = 'http://'
+        web_url = protocol + 'localhost:8000'
+    post_url = web_url + "/accounts/users/activation/"
+    post_data = {'uid': uid, 'token': token}
+    result = requests.post(post_url, json=post_data)
+    message = result.json()
+    return render(request=request, template_name="account_activation_complete.html", context={"message": message})
 
-        if request.is_secure():
-            protocol = 'https://'
-            web_url = protocol + 'njeveh.pythonanywhere.com'
-        else:
-            protocol = 'http://'
-            web_url = protocol + 'localhost:8000'
-        post_url = web_url + "/accounts/users/activation/"
-        post_data = {'uid': uid, 'token': token}
-        result = requests.post(post_url, json=post_data)
-        content = result.json()
-        return Response(content)
+
+# def user_account_activated(request):
+#     """displays user account activation response message"""
+
+#     if request.is_secure():
+#         protocol = 'https://'
+#         web_url = protocol + 'njeveh.pythonanywhere.com'
+#     else:
+#         protocol = 'http://'
+#         web_url = protocol + 'localhost:8000'
+#     post_url = web_url + "/accounts/users/activation/"
+#     post_data = {'uid': uid, 'token': token}
+#     result = requests.post(post_url, json=post_data)
+#     content = result.json()
+#     return Response(content)
 
 
 class CustomAuthToken(ObtainAuthToken):

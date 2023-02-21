@@ -15,11 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from djoser import urls
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("rojac/", include("rojac.urls")),
     # path('rojac-o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('accounts/', include('djoser.urls')),
-]
+] + static(settings.MEDIA_URL,
+           document_root=settings.MEDIA_ROOT)
