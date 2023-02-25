@@ -30,14 +30,12 @@ SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+# ALLOWED_HOSTS = [
+#     'http://localhost:8000',
+# ]
+
 PRODUCTION = False
-
-ALLOWED_HOSTS = [
-    # 'http://localhost:8000',
-    # 'https://da59-41-60-236-29.ngrok.io'
-]
-
-
 # Application definition
 
 INSTALLED_APPS = [
