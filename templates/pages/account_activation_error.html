@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!--Account Activation Error-->
+<div class="container p-4">
+    <h2 class="font-weight-bold mt-3">Account Activation Error</h2>
+    <p>
+        <span>There was an error trying to perform the requested action. </span>
+        {% if error == "stale_link" %}
+            <span>
+                Activation link already used.
+            </span>
+        {% elif error == "invalid_link" %}
+            <span>
+                Activation link used is invalid.
+            </span>
+    
+        {% endif %}
+    </p>
+</div>
+
+{% endblock %}

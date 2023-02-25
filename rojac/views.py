@@ -1,31 +1,31 @@
 
-from urllib import request
-from django.http import HttpResponse, HttpResponseServerError, JsonResponse
+from django.http import HttpResponseServerError, JsonResponse
 from django.shortcuts import render
-import requests
+from django.contrib.auth.tokens import default_token_generator
 from django.core import serializers as sez
 from django.core.serializers import serialize
+from djoser.serializers import ActivationSerializer
 import pytz
+from djoser import signals
 from .serializers import *
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView, ListCreateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
-from .models import *
-from rest_framework import filters
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
+from rest_framework.decorators import action
+from .models import *
+from rest_framework import filters
 from django.core.mail import send_mail
 from smtplib import SMTPException
 from .permissions import *
 # from .mpesa import lipa_na_mpesa
-from django.utils import timezone
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .utils.accounts import has_pending_signup, get_session_data
 from random import seed
 from random import randint
-from rest_framework.renderers import JSONRenderer
-from rojac_backend import settings as conf
 
 
 class Index():
@@ -414,22 +414,80 @@ class ClientEmailView(CreateAPIView):
                     'status_code': 400}
 
 
-def user_account_activation(request, uid, token):
+# def user_account_activation(request, uid, token):
+#     """gets the activation request, captures the activation id and token from the request link
+#     and posts them to the djoser account activation url"""
+
+#     # if conf.PRODUCTION:
+#     #     protocal = 'https://'
+#     # else:
+#     protocal = 'https://'
+#     web_url = protocal + "njeveh.pythonanywhere.com"
+#     post_url = web_url + "/accounts/users/activation/"
+#     post_data = {'uid': uid, 'token': token}
+#     # return render(request=request, template_name="email/pages/account_activation_complete.html", context={"message": "success", "post_data": post_data})
+#     try:
+#         result = requests.post(post_url, json=post_data)
+#         if result.status_code == 204:
+#             return render(request=request, template_name="email/pages/account_activation_complete.html", context={"message": "success", "post_data": post_data})
+#         else:
+#             return render(request=request, template_name="email/pages/account_activation_complete.html", context={"message": "fail", "post_data": post_data})
+#     except Exception as e:
+#         message = e
+#         return render(request=request, template_name="email/pages/account_activation_complete.html", context={"message": message, "post_data": post_data})
+class ActivateUser(APIView):
     """gets the activation request, captures the activation id and token from the request link
     and posts them to the djoser account activation url"""
+    token_generator = default_token_generator
 
-    if conf.PRODUCTION:
-        protocal = 'https://'
-    else:
-        protocal = 'http://'
-    web_url = protocal + conf.SITE_DOMAIN
-    post_url = web_url + "/accounts/users/activation/"
-    post_data = {'uid': uid, 'token': token}
-    result = requests.post(post_url, json=post_data)
-    message = result.json()
-    return Response(message)
-    # return render(request=request, template_name="account_activation_complete.html", context={"message": message})
+    def get(self, request, **kwargs):
+        try:
+            serializer = self.get_serializer(
+                data={'uid': self.kwargs['uid'], 'token': self.kwargs['token']})
+            try:
+                serializer.is_valid(raise_exception=True)
+            except PermissionDenied:
+                error = "stale_link"
+                return render(request=request, template_name="/pages/account_activation_error.html", context={"error": error, })
+            except ValidationError:
+                error = "invalid_link"
+                return render(request=request, template_name="/pages/account_activation_error.html", context={"error": error, })
+            user = serializer.user
+            with transaction.atomic():
+                user.is_active = True
+                user.save()
+                signals.user_activated.send(
+                    sender=self.__class__, user=user, request=self.request
+                )
 
+                if settings.SEND_CONFIRMATION_EMAIL:
+                    context = {"user": user}
+                    to = [get_user_email(user)]
+                    settings.EMAIL.confirmation(self.request, context).send(to)
+                return render(request=request, template_name="/pages/account_activation_complete.html")
+        except Exception as e:
+            return render(request=request, template_name="/pages/internal_error_500.html")
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Return the serializer instance that should be used for validating and
+        deserializing input, and for serializing output.
+        """
+        serializer_class = ActivationSerializer
+        kwargs.setdefault('context', self.get_serializer_context())
+        return serializer_class(*args, **kwargs)
+
+    def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        """
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
+
+        # return Response(status=status.HTTP_204_NO_CONTENT)
 
 # def user_account_activated(request):
 #     """displays user account activation response message"""

@@ -125,7 +125,7 @@ urlpatterns = [
 
     ######################### OTHER URLS ###############################
     re_path(
-        r'^activate-account/(?P<uid>[\w-]+)/(?P<token>[\w-]+)/$', views.user_account_activation, name="activate-account"),
+        r'^activate-account/(?P<uid>[\w-]+)/(?P<token>[\w-]+)/$', views.ActivateUser.as_view(), name="user-activation"),
     #     path("account-activated", views.user_account_activated,
     #          name="account-activated"),
     #     path("login", views.login_request, name="login"),
