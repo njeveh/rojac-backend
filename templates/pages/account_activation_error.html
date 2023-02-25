@@ -5,19 +5,23 @@
 <!--Account Activation Error-->
 <div class="container p-4">
     <h2 class="font-weight-bold mt-3">Account Activation Error</h2>
-    <p>
-        <span>There was an error trying to perform the requested action. </span>
+    <p>There was an error trying to perform the requested action.</p>
         {% if error == "stale_link" %}
-            <span>
+            <p>
                 Activation link already used.
-            </span>
+            </p>
         {% elif error == "invalid_link" %}
-            <span>
+            <p>
                 Activation link used is invalid.
-            </span>
+            </p>
+                <p>Please enter your email address to request for another activation link.</p>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button class="btn btn-primary" type="submit">Resend Activation Link</button>
+                </form>
     
         {% endif %}
-    </p>
 </div>
 
 {% endblock %}
